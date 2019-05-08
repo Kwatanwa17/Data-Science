@@ -1,0 +1,112 @@
+---
+title: "Tornado causes severe consequences in our life"
+output: 
+  html_document:
+    keep_md: true
+---
+
+## Synopsis
+
+We analysed the major storms and weather events in the United States using the storm database provided by the U.S. National Oceanic and Atmospheric Administration's (NOAA). In the first part, we focused to the human health in order to know which weather event casuses the lagest number of fatality and injury. In the second part, we investigate economic consequences of weather events. As a result, we conclude that tornado is the most serious event as it might not be only harmful for the human health, but also it seems to cause severe consequences in the economic aspect.
+
+## Data processing
+
+```{r setoptions, echo=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+Preparation of packages which will be used and download the data set.
+
+```{r setup}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(xtable)
+```
+
+```{r}
+url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+download.file(url, "2FStormData.csv.bz2")
+StormData <- read.csv("2FStormData.csv.bz2")
+```
+
+### Question 1
+
+We select 3 columms of the original data set, concretly, EVTYPE, FATALITIES and INJURIES in order to the most harmful event with respect to the human health. Then, we create a new variable named "Total", which is the number of fatalities and injuries.
+
+```{r}
+Harmful <- StormData %>% select(EVTYPE, FATALITIES, INJURIES) %>% 
+  group_by(EVTYPE) %>%
+  summarise(Fatality = sum(FATALITIES),
+            Injury = sum(INJURIES)) %>% 
+  mutate(Total = Fatality + Injury)
+```
+
+Extract only top 10 of the Total variable to know the most harmful events.
+
+```{r}
+Top10Harmful <- Harmful[order(Harmful$Total, decreasing = TRUE),][1:10,]
+```
+
+Notice that here we have to transform the data frame to make a bar plot.
+```{r}
+Top10HarmfulTrans <- Top10Harmful %>%
+  select(-Total) %>% 
+  gather(key = type, value = number, Fatality, Injury)
+```
+
+### Question2
+
+We select two variables: EVTYPE and PROPDMG. 
+```{r}
+PropDmg <- StormData %>% select(EVTYPE, PROPDMG) %>% 
+  group_by(EVTYPE) %>% 
+  summarise(Amount = sum(PROPDMG))
+```
+
+Just like the previous question, we select top 10 of the PROPDMG grouped by event type (EVTYPE).
+```{r}
+Top10Damage <- PropDmg[order(PropDmg$Amount, decreasing = TRUE),][1:10,]
+```
+
+## Results
+
+### Question 1
+
+This is the plot of the most harmful events.
+```{r}
+g <- ggplot(Top10HarmfulTrans, aes(EVTYPE, number,fill = type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  +
+  coord_cartesian(ylim = c(0, 10000)) +
+  labs(x = "Event", y = "Number of persons", title = "Top 10 Most harmful events") +
+  guides(fill=guide_legend(title=""))
+print(g)
+```
+
+And this is the table of the most harmful events.
+```{r, results = "asis"}
+t <- xtable(Top10Harmful, caption = "The most harmful event seems to be tornado. Both the number of fatality and of the injuriy are extremely high.", auto = TRUE)
+print(t, type = "html")
+
+```
+
+### Question 2
+
+This is the plot of the events which caused the most serious economic consequences.
+```{r}
+options(scipen=100)
+g2 <- ggplot(Top10Damage, aes(EVTYPE, Amount)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Event", y = "Amount (dollar)", title = "Top 10 Most property damage") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+print(g2)
+
+```
+
+And this is the corresponding table.
+```{r, results = "asis"}
+t2 <- xtable(Top10Damage, caption = "The event witch caused the most serious economic damage seems to be tornado, with 3,212,258.16 dollar", auto = TRUE)
+print(t2, type = "html")
+
+```

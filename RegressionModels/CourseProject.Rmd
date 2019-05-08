@@ -1,0 +1,118 @@
+---
+title: "Course project Regression models"
+author: "kwatanwa17"
+date: "12/9/2018"
+output: pdf_document
+---
+\tiny
+
+```{r setup, cache = FALSE, echo = FALSE, message = FALSE, warning = FALSE, tidy = FALSE}
+# make this an external chunk that can be included in any file
+options(width = 200)
+knitr::opts_chunk$set(echo = TRUE, message = F, error = F, warning = F, comment = NA, fig.align = 'center', dpi = 100, tidy = F, cache.path = '.cache/', fig.path = 'fig/')
+library(dplyr)
+library(ggplot2)
+data(mtcars)
+```
+
+## Executive summmary
+In this paper, we analyse "mtcar" data set to compare cars with different transmission type based on males per gallon (mpg). We conclude that in general manual cars are more efficinet than automatic ones, but this relationship is also explained by other variables.
+
+
+## Data description
+The "mtcars" data set was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973–74 models). It is a data frame with 32 observations on 11 (numeric) variables.
+
+## Prepearing for the analysis
+Before we start the analysis, we need to change the classes of some variables.
+```{r}
+#change variable clasees
+mtcars$cyl <- factor(mtcars$cyl)
+mtcars$am <- factor(mtcars$am, levels = c(0,1), labels = c("automatic", "manual"))
+mtcars$vs <- factor(mtcars$vs, levels = c(0,1), labels = c("V-shaped", "straight"))
+mtcars$gear <- factor(mtcars$gear)
+mtcars$carb <- factor(mtcars$carb)
+```
+
+```{r, eval = FALSE, echo = FALSE}
+str(mtcars)
+```
+
+## First analysis (mpg vs am)
+Firstly, we check only mpg and am variables. See Figure 1 in the appendix.
+```{r}
+#ttest
+t.test(mtcars$mpg ~ mtcars$am, alternative = "two.sided", paired = FALSE, var.equal = FALSE)
+```
+It is quite obvious that the manual cars have heigher mean than the automatic ones, but we suspect other variables that afects this relationship.
+
+## Explanation
+Now we check the all possibles relationships in the variables. To do that, we use pairs function to investigate possible correlation between variables. As a result of the plot, cyl, disp, hp, drat, wt, vs, and am seem to have strong relationship with the mpg variable. See the Figure 2. 
+
+## Modeling
+
+### Linear model
+```{r}
+fit <- lm(mpg ~ am, data = mtcars)
+summary(fit)
+```
+Ajusted R-squred value tells us that 33% of the variation of mpg will be explained by am.
+
+### Modeling test 
+As we see in Figure 2, there are some strong relationships between mpg and some variables of the data set. We have to check if these variables are statistically significant in the regression. In order to obtain the optimal regression, we conduct AIC algorithms. First, we take all dependent variables and then elminate on by one until AIC score reaches a limit.
+```{r results='hide'}
+initial_fit <- lm(mpg ~ ., data = mtcars)
+final_fit <- step(initial_fit, direction = "both")
+```
+
+And this regression seems to be better than the regression with only am variable.
+```{r}
+anova(fit,final_fit)
+```
+
+## Analysis of final fit model
+
+### Residuals
+The QQ-plot shows that residuals are normally distributed and Residual vs Fitted plot indicates some outliers. See Figure 3.
+
+### final fit
+```{r}
+summary(final_fit)
+```
+
+## Conclusion
+To sum up, we conclude the following:
+
+- First, munual transmission cars have more miles per galon (mpg) than automatic transmission cars. In concreatly?, the difference on the mean is 1.8 ajusted by cyl, hp and wt variables.
+- secondly, with respect to the number of cylinders, the cylinder 4 seems to have the highest mean in both transmission type. See Figure 4.
+- thirdly, both hp and wt have negative relationship with mpg. If we increment hp or wt, mpg will decrease.
+
+## Appendix
+
+```{r Figure 1, echo = FALSE, fig.height=3, fig.width=3, fig.cap="Boxplot of mpg by transmission  type"}
+am_boxplot <- ggplot(mtcars,aes(y = mpg, x = am, fill = am)) +
+  geom_boxplot(color = "black", size = 0.1) +
+  ggtitle("Boxplot of mpg by transmission type") +
+  xlab("Transmission type") +
+  ylab("Miles per galon") +
+  theme_bw(base_size = 5) +
+  theme(legend.position = 'none') 
+
+am_boxplot
+```
+
+```{r Figure 2, echo = FALSE, fig.height=4, fig.width=4, results="asis",fig.cap="Pairs plots"}
+pairs(mpg ~ ., data = mtcars)
+```
+
+```{r Figure 3, echo = FALSE, fig.height=5, fig.width=5, results="asis", fig.cap="Residual analysis of final fit model"}
+par(mfcol = c(2,2))
+plot(final_fit)
+```
+
+```{r Figure 4, echo = FALSE, fig.height=3, fig.width=4, results="asis", fig.cap="mpg vs cyl"}
+mpg_cyl <- ggplot(mtcars,aes(x = cyl, y = mpg, fill = am)) +
+  geom_boxplot(aes(color=am), color = "black", size = 0.1)  +
+  theme_bw(base_size = 5) +
+  ggtitle("mpg vs cyl")
+mpg_cyl
+```

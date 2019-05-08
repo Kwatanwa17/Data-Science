@@ -1,0 +1,29 @@
+---
+title: "Leaflet"
+author: "kwatanwa17"
+date: "September 24 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load leaflet
+
+```{r}
+library(leaflet)
+suppressPackageStartupMessages(library(dplyr))
+```
+
+# Plot the map
+
+```{r}
+df <- data.frame(lat = runif(10, min = 30, max = 40),
+                 lng = runif(10, min =130, max = 140))
+
+df %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addMarkers()
+```

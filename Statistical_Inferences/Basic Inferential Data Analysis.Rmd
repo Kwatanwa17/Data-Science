@@ -1,0 +1,33 @@
+---
+title: "Basic Inferential Data Analysis"
+author: "kwatanwa17"
+date: "4/9/2018"
+output: html_document
+---
+## Overview
+This is the second part of the course project. In this paert, we conducted t test using ToothGroth data set. 
+## Part 2: Basic Inferential Data Analysis
+
+Loading the data set.
+```{r}
+library(datasets)
+data("ToothGrowth")
+```
+
+### Summary of the data
+Notice that the variable dose is the quantity of dose which ranges from 0.5 to 2. There is the same number of subjects with respect to the supp variable (OJ/VC).
+```{r}
+summary(ToothGrowth)
+```
+
+### T test two sided test 
+```{r}
+VC <- subset(ToothGrowth, supp == "VC")
+OJ <- subset(ToothGrowth, supp == "OJ")
+```
+
+```{r}
+t.test(VC$dose, OJ$dose, paired = FALSE, var.equal = FALSE, alternative = "two.sided")
+t.test(VC$len, OJ$len, paired = FALSE, var.equal = FALSE, alternative = "two.sided")
+```
+As a result of the analysis of the experiment data, there is no diference of tooth length by the supplement type (orange juice vs ascorbic acid). On the other hand, it is quite clear that there would not be difference by levels of Vitamin C (variable dose).For more information, please see R help page ("The Effect of Vitamin C on Tooth Growth in Guinea Pigs": http://www.is.titech.ac.jp/~mase/mase/html.jp/temp/ToothGrowth.jp.html).

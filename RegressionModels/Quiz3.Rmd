@@ -1,0 +1,59 @@
+---
+title: "Quiz3"
+author: "kwatanwa17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1
+```{r}
+data(mtcars)
+fit <- lm(mpg ~ wt + factor(cyl) ,data = mtcars)
+summary(fit)
+#-6.071
+```
+
+## 2
+```{r}
+fit2 <- lm(mpg ~ factor(cyl)  ,data = mtcars)
+summary(fit2)
+#Holding weight constant, cylinder appears to have less of an impact on mpg than if weight is disregarded.
+```
+
+## 3 miss
+```{r}
+fit3 <- lm(mpg ~ wt * factor(cyl) ,data = mtcars)
+anova(fit, fit3)
+#The P-value is larger than 0.05. So, according to our criterion, we would fail to reject, which suggests that the interaction terms may not be necessary.
+```
+
+## 4 miss
+```{r}
+fit4 <- lm(mpg ~ I(wt * 0.5) + factor(cyl), data = mtcars)
+summary(fit4)
+#The estimated expected change in MPG per half ton increase in weight for the average number of cylinders.
+```
+
+## 5 
+```{r}
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+fit5 <- lm(y~x)
+summary(influence.measures(fit5))
+#0.9946
+```
+## 6
+```{r}
+x <- c(0.586, 0.166, -0.042, -0.614, 11.72)
+y <- c(0.549, -0.026, -0.127, -0.751, 1.344)
+fit5 <- lm(y~x)
+summary(influence.measures(fit5))
+#-134
+```
+
+```{r}
+#It is possible for the coefficient to reverse sign after adjustment. For example, it can be strongly significant and positive before adjustment and strongly significant and negative after adjustment.
+```
